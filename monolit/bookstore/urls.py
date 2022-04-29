@@ -1,5 +1,5 @@
 from django.urls import re_path
-from bookstore import views
+from monolit.bookstore import views
 
 urlpatterns = [
     re_path(r'^users$', views.user_api),

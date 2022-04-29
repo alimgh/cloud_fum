@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from bookstore.models import Users, Books, Genres, Reviews, States, Orders
+from monolit.bookstore.models import Users, Books, Genres, Reviews, States, Orders
 
 
 class UsersSerializer(serializers.ModelSerializer):

@@ -1,10 +1,9 @@
-from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 
-from bookstore.models import Users, Books, Reviews, Orders, States
-from bookstore.serializers import UsersSerializer, BookSerializer, ReviewsSerializer,\
+from monolit.bookstore.models import Users, Books, Reviews, Orders
+from monolit.bookstore.serializers import UsersSerializer, BookSerializer, ReviewsSerializer,\
     OrdersSerializer, OrdersListSerializer
 
 
