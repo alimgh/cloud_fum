@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import models
 
 
@@ -38,7 +39,7 @@ class States(models.Model):
 
 class Orders(models.Model):
     id = models.AutoField(primary_key=True)
-    order_date = models.DateField(null=True)
+    order_date = models.DateField(default=datetime.now, null=True)
     seller = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="seller_id", null=True)
     customer = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="customer_id", null=True)
     state = models.ForeignKey(States, on_delete=models.CASCADE, null=True)
