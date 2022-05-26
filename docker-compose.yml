@@ -1,0 +1,47 @@
+version: '3'
+services:
+  user_db:
+    image: mysql:5.7.22
+#    restart: always
+    environment:
+      MYSQL_DATABASE: users
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - .dbuser:/var/lib/mysql
+    ports:
+      - '33066:3306'
+
+  library_db:
+    image: mysql:5.7.22
+#    restart: always
+    environment:
+      MYSQL_DATABASE: library
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - .dblibrary:/var/lib/mysql
+    ports:
+      - '33067:3306'
+
+  user_management:
+    build: ./user_management
+    command: bash -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    ports:
+      - '8000:8000'
+    volumes:
+      - .:/code
+    depends_on:
+      - user_db
+
+  library:
+    build: ./library
+    command: bash -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8001"
+    ports:
+      - '8001:8001'
+    volumes:
+      - .:/code
+    depends_on:
+      - library_db
+    links:
+      - "user_management:user.management"
