@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-management
+  labels:
+    app: user-management
+spec:
+  selector:
+    matchLabels:
+      app: user-management
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: user-management
+    spec:
+      containers:
+      - name: user-management
+        image: localhost:5000/cloud_fum_user_management:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DB_NAME
+          value: "users"
+        - name: DB_HOST
+          value: "user_db"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        volumeMounts:
+        - mountPath: "/var/lib/mysql"
+          name: user_db
+      volumes:
+      - name: user_db
+        persistentVolumeClaim:
+          claimName: pvc-users
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-management-service
+spec:
+  selector:
+    app: user-management
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

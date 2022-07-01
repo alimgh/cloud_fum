@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: librarydb-deployment
+  labels:
+    app: librarydb
+spec:
+  selector:
+    matchLabels:
+      app: librarydb
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: librarydb
+    spec:
+      containers:
+      - name: librarydb
+        image: localhost:5000/mysql:5.7.22
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: librarydb-configmap
+              key: db_url
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: librarydb-service
+spec:
+  selector:
+    app: librarydb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
