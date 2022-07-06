@@ -12,6 +12,8 @@ fi
 
 python manage.py migrate
 python manage.py collectstatic --no-input
+
+# If you are using docker-compose instead of kubernetes, comment the below line
 daphne library.asgi:application --bind 0.0.0.0 --port 8000
 
 exec "$@"
