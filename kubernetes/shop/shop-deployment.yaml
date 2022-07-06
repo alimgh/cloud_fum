@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop
+  labels:
+    app: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shop-container
+  template:
+    metadata:
+      labels:
+        app: shop-container
+    spec:
+      containers:
+        - image: localhost:5000/shop
+          imagePullPolicy: Never
+          name: shop
+          env:
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: shop-secret
+                  key: secret_key
+
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: shop-secret
+                  key: database_username
+
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shop-secret
+                  key: database_password
+
+            - name: DATABASE_HOST
+              value: shop-database-service
+
+          envFrom:
+          - configMapRef:
+              name: shop-config
+          ports:
+            - containerPort: 8001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-database-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shop-database-container
+  template:
+    metadata:
+      labels:
+        app: shop-database-container
+        tier: backend
+    spec:
+      containers:
+        - name: shop-database-container
+          image: postgres:14.3
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: shop-secret
+                  key: database_username
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: shop-secret
+                  key: database_password
+
+            - name: POSTGRES_DB
+              value: shop_db
+
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: shop-database-volume-mount
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+        - name: shop-database-volume-mount
+          persistentVolumeClaim:
+            claimName: shop-pvc

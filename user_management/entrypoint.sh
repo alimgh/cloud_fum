@@ -12,7 +12,6 @@ fi
 
 python manage.py migrate
 python manage.py collectstatic --no-input
-python manage.py makemessages -l fa
-python manage.py compilemessages
+daphne user_management.asgi:application --bind 0.0.0.0 --port 8002
 
 exec "$@"

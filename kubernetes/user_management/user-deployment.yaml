@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+  labels:
+    app: user
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-container
+  template:
+    metadata:
+      labels:
+        app: user-container
+    spec:
+      containers:
+        - image: localhost:5000/user
+          imagePullPolicy: Never
+          name: user
+          env:
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: secret_key
+
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: database_username
+
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: database_password
+
+            - name: DATABASE_HOST
+              value: user-database-service
+
+          envFrom:
+          - configMapRef:
+              name: user-config
+          ports:
+            - containerPort: 8002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-database-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-database-container
+  template:
+    metadata:
+      labels:
+        app: user-database-container
+        tier: backend
+    spec:
+      containers:
+        - name: user-database-container
+          image: postgres:14.3
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: database_username
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: database_password
+
+            - name: POSTGRES_DB
+              value: user_db
+
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: user-database-volume-mount
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+        - name: user-database-volume-mount
+          persistentVolumeClaim:
+            claimName: user-pvc

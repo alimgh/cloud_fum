@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: library
+  labels:
+    app: library
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: library-container
+  template:
+    metadata:
+      labels:
+        app: library-container
+    spec:
+      containers:
+        - image: localhost:5000/library
+          imagePullPolicy: Never
+          name: library
+          env:
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: library-secret
+                  key: secret_key
+
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: library-secret
+                  key: database_username
+
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: library-secret
+                  key: database_password
+
+            - name: DATABASE_HOST
+              value: library-database-service
+
+          envFrom:
+          - configMapRef:
+              name: library-config
+          ports:
+            - containerPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: library-database-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: library-database-container
+  template:
+    metadata:
+      labels:
+        app: library-database-container
+        tier: backend
+    spec:
+      containers:
+        - name: library-database-container
+          image: postgres:14.3
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: library-secret
+                  key: database_username
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: library-secret
+                  key: database_password
+
+            - name: POSTGRES_DB
+              value: library_db
+
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: library-database-volume-mount
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+        - name: library-database-volume-mount
+          persistentVolumeClaim:
+            claimName: library-pvc

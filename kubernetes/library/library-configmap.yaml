@@ -7,3 +7,5 @@ data:
   ALLOWED_HOSTS: "localhost,127.0.0.1"
   LOGLEVEL: "INFO"
   DATABASE_ENGINE: "postgresql"
+  DATABASE_NAME: "library_db"
+  DATABASE_PORT: "5432"
